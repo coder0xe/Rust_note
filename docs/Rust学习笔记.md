@@ -66,3 +66,87 @@ fn main() {
 
 ## 3.猜数游戏
 
+### 3.1 增加依赖项
+
+​	我们需要增加一个随机数包``rand``，此时需要在项目的``Cargo.toml``中的``[dependencies]``增加对应的包以及版本(这里Dependi插件会进行版本检查，可以使用``^``表示兼容此版本的其他版本都可以)
+
+```toml
+# Cargo.toml
+[dependencies]
+rand = "^0.8.5"
+```
+
+​	cargo会下载对应的包以及该包依赖的其他包，并在编译时进行整合。cargo提供了包环境的管理，可以发现在``Cargo.lock``中有这些包的版本信息等，当其他人运行我们的代码时，**通过``Cargo.lock``一定会得到相同的复现结果。**
+
+```toml
+# Cargo.lock 
+# 以rand为例
+[[package]]
+name = "rand"
+version = "0.8.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "34af8d1a0e25924bc5b7c43c079c942339d8f0a8b57c39049bef581b46327404"
+dependencies = [
+ "libc",
+ "rand_chacha",
+ "rand_core",
+]
+```
+
+​	如果需要更新package,可以使用``cargo update``进行index表的更新，之后使用index表进行包的安装而忽略``Cargo.lock``，最后将新的版本信息更新到``Cargo.lock``中，但不会更新到``Cargo.toml``中。
+
+### 3.2 code
+
+```rust
+use std::io; // prelude 标准io库
+use rand::Rng; // trait 接口
+use std::cmp::Ordering; // enum
+
+fn main() {
+    let secret_number = rand::thread_rng().gen_range(1..101);
+    println!("the secret number is {}", secret_number);
+
+    loop {
+        println!("guess a number!"); 
+        // ！表示println是一个宏
+
+        let mut guess = String::new(); // let 声明变量 
+        // rust中变量默认为不可变的 immutable 如果需要变量，则可以增加mut关键字
+        
+        io::stdin().read_line(&mut guess).expect("can not read a number"); // 方法参数按照引用传递
+        // io::Result Ok,Err
+        
+        println!("Your number is {}", guess);
+        // {}表示占位符 其中的内容为guess
+
+        // let guess:u32 = guess.trim().parse().expect("Form Err! Please type a new number!");
+        // 进行类型转换 将字符串类型String转换为u32
+        // 可以使用原变量名 对旧变量进行隐藏
+
+        let guess:u32 = match guess.trim().parse() {
+            Ok(num) => num,
+            Err(_) => continue,
+        };
+        // 使用match来解决异常 
+    
+        match guess.cmp(&secret_number) {
+            Ordering::Less => println!("Too SMALL!"),
+            Ordering::Greater => println!("Too BIG!"),
+            Ordering::Equal => {
+                println!("YOU WIN!");
+                break;
+            }
+        }
+    }
+    
+}
+```
+
+## TIPS: useful plugins for RUST
+
+* rust analyzer：Run/Debug(当然可以通过命令行)
+* Code LLDB：代码调试
+* Even Better TOML：编辑.toml文件
+* Dependi：管理crates版本
+
+* git-commit-plugin：规范提交信息
