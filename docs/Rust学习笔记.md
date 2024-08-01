@@ -307,8 +307,77 @@ fn main() {
 ### 4.3 函数
 
 * 声明函数使用```fn```关键字
+
 * 针对函数和变量名，Rust采用``snake case``命名规范：所有的字母都是小写的，单词之间使用下划线分开
-* 
+
+* 不同于C/C++等较为古老的语言，**Rust中不必关心函数的声明先后以及调用顺序**
+
+  ```rust
+  fn main() {
+      println!("Hello, world!");
+      another_function();
+  }
+  
+  fn another_function() {
+      println!("Another function.");
+  }
+  ```
+
+* **函数的参数**：``parameters(形参), arguments(实参)``
+
+  * **在函数签名中，必须声明参数的类型**
+
+    ```rust
+    fn another_function(a: i32, b: i32) {
+        println!("The value of a is: {}", a);
+        println!("The value of b is: {}", b);
+    }
+    ```
+
+* **Rust函数体中的语句与表达式(重要)**
+
+  * 函数体由一系列**语句**组成，可选的由一个**表达式**结束
+
+  * Rust是一个基于表达式的语言
+
+  * 语句是执行一些动作的指令
+
+  * 表达式会计算产生一个值
+
+    ```rust
+    // 用{}创建表达式
+    let y = {
+        let x = 3;
+        x + 3
+    }
+    ```
+
+  * 函数的定义也是语句
+
+  * 语句不返回值(**返回值是一个空的tuple:``()``**)，不可以使用let将一个语句赋值给一个变量
+
+  * **表达式与语句简单区分：看末尾有没有分号**
+
+    ```rust
+    x + 3 // expression 返回对应的返回值
+    x + 3; // statement 返回空元组类型 ()
+    ```
+
+* **函数的返回值**：在``->``符号右边声明函数**返回值的类型**，**但是不可以为返回值命名**。
+
+* **在Rust中，返回值就是函数体中最后一个表达式的值，如果要提前返回，需要使用return关键字**
+
+  ```rust
+  fn add(a:i32,b:i32) -> i32 {
+      a + b // 表达式做返回值(没有分号)
+  }
+  ```
+
+### 4.4 注释
+
+> 同C语言注释
+
+
 
 ## TIPS: useful plugins for RUST
 
