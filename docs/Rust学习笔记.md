@@ -142,6 +142,10 @@ fn main() {
 }
 ```
 
+## 4. Rust基础
+
+
+
 ## TIPS: useful plugins for RUST
 
 * rust analyzer：Run/Debug(当然可以通过命令行)
