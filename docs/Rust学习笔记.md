@@ -377,7 +377,94 @@ fn main() {
 
 > 同C语言注释
 
+### 4.5 控制流
 
+#### 4.5.1 if
+
+* **if表达式中必须是``bool``类型，C++中会将非bool转换为bool，这里需要注意**
+
+* 一点区别是if后的条件没有括号
+
+  ```c++
+  if x % 4 == 0 {
+      println!("x is divisible by 4");
+  } else if x % 3 == 0 {
+      println!("x is divisible by 3");
+  } else if x % 2 == 0 {
+      println!("x is divisible by 2");
+  } else {
+      println!("x is not divisible by 4, 3, or 2");
+  }
+  ```
+
+* **如果使用多于一个else if,最好使用match来重构代码**
+
+  ```rust
+  match x {
+      x if x % 4 == 0 => println!("x is divisible by 4"),
+      x if x % 3 == 0 => println!("x is divisible by 3"),
+      x if x % 2 == 0 => println!("x is divisible by 2"),
+      _ => println!("x is not divisible by 4, 3, or 2"),
+  }
+  ```
+
+* **由于if是一个表达式，可以用来做赋值右值**
+
+  ```rust
+  fn main() {
+      let condition = true;
+  
+      let number = if condition { 5 } else { 6 };
+  
+      println!("The value of number is: {}", number);
+  }
+  ```
+
+#### 4.5.2 loop
+
+* 反复执行代码块内代码，在loop循环中使用``break``来告诉程序何时停止循环
+
+```rust
+let mut cnt = 0;
+let result = loop {
+	cnt += 1;
+
+    if cnt == 10 {
+        break cnt * 2;
+    }
+};
+```
+
+* **可以作为表达式使用**
+
+#### 4.5.3 while
+
+```rust
+while number != 0 {
+    println!("{}", number);
+    number -= 1;
+}
+```
+
+#### 4.5.4 for
+
+* 使用while/loop遍历集合易错且低效
+* 使用for循环更简洁，可以针对集合中每一个元素来执行一些代码
+
+```rust
+let arr = [10, 20, 30, 40, 50];
+for element in arr.iter() {
+    println!("The value is: {}", element);
+}
+```
+
+* **Range**：标准库提供，指定一个开始数字和一个结束数字，Range可以生成他们之间的数字(不含结束),**``rev``**方法可以反转Range
+
+  ```rust
+  for i in (1..4).rev() {
+      println!("{}", i);
+  }
+  ```
 
 ## TIPS: useful plugins for RUST
 
