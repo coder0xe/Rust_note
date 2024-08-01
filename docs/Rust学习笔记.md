@@ -466,6 +466,266 @@ for element in arr.iter() {
   }
   ```
 
+### 4.6  所有权
+
+* Rust的核心特性就是所有权
+* 所有程序在运行时都必须管理他们使用计算机内存的方式
+  * Java语言中有垃圾收集机制，在程序运行时会不断地寻找不再使用的内存
+  * C/C++中需要程序员显示分配和释放内存
+  * **Rust是通过一个所有权系统来管理的，其中包含一组编译器在编译时检查的规则**，当程序运行时，**所有权特性不会减慢程序的运行速度**
+
+#### 4.6.1 Stack vs Heap
+
+* Stack vs Heap
+  * 对于Rust系统级编程来说，了解数据存储在Stack/Heap很有必要
+  * Stack：LIFO，**进栈/出栈**
+    * **所有存储在Stack上的数据必须拥有已知的固定的大小**
+    * **编译时大小未知的数据或运行时大小可能发生变化的数据必须存放在heap上**
+  * Heap
+    * 内存组织性差一些
+    * 当把数据放入heap时，会请求一定数量的空间，操作系统在heap中找到一块足够大的空间，把他标记为在用，并返回一个指针，这个过程称为**分配**
+  * **访问heap中的数据要比访问stack中的数据慢，因为需要通过指针才能找到heap中的数据**
+  * **当调用函数时，值被传入到函数(包括heap指针)，函数本地的变量被压到stack上，当函数结束后，这些值从stack上弹出**
+* **所有权解决的问题 ： 管理heap数据**
+  * 跟踪代码的哪些部分正在使用heap的哪些数据
+  * 最小化heap上的重复数据量
+  * 清理heap上未使用的数据以避免空间不足
+
+#### 4.6.2 所有权规则
+
+* 每个值都有一个变量、这个变量是该值的所有者
+
+* 每个值同时只能有一个所有者
+
+* 当所有者超出作用域，该值将被删除
+
+* **变量作用域(scope)**
+
+* 以String类型为例(**前面提到的简单数据类型都存储在Stack上，当他们离开作用域后，数据会弹出栈，String数据类型存储在Heap上，便于研究所有权**)
+
+  * 字符串字面值：程序中写死的字符串值，不可变(``&str类型``)
+
+  * 可变字符串值：例如需要输入字符串``=>``未知大小在Heap中申请内存(``String类型``)
+
+    ```rust
+    fn main() {
+        let mut s = String::from("hello"); // s comes into scope
+    
+        s.push_str(", world!"); // push_str() appends a literal to a String
+    
+        println!("{}", s); // This will print `hello, world!`
+    }
+    ```
+
+    * 使用``from``函数从字符串字面值创建出String类型，这类字符串是可以修改的，why?
+
+* **内存和分配**
+
+  * 对于字符串字面值，我们在编译时就知道了他的内容，其文本内容直接被硬编码到最终的可执行文件中(同时字符串字面值不可被声明为``mut``)
+
+    ```rust
+    let str = "hello, world";
+    let met str1 = "hello"; // Err! 
+    ```
+
+    * 速度快、高效、**因为其不可变性**
+
+  * 对于String类型，为了**支持可变性**，需要在heap上分配内存来保存编译时未知的文本内容
+
+    ```rust
+    let mut s = String::from("hello");
+    ```
+
+    * 操作系统必须在运行时申请内存，``String::from``
+    
+    * 当用完String后，需要将内存返还给操作系统
+      * 在拥有GC的语言(Java)中，GC会跟踪并清理不再使用的内存
+      * 没有GC就需要我们去识别内存何时不再使用，并调用代码将他返回(C/C++)
+      * **在Rust中，对于某个值，当拥有他的变量走出作用域时，内存就会立即自动的交还给操作系统(不用手动free)**
+    
+    * **Rust中的drop函数：当变量走出作用域，Rust会自动调用drop函数进行内存回收**
+    
+    * **变量和数据交互的方式:Move**
+    
+      * 多个变量可以与同一个数据使用一种独特的方式来交互
+    
+        ```rust
+        let x = 5;
+        let y = x;
+        ```
+    
+      * 整数是已知且固定大小的值，这两个5被压到了stack中
+    
+      * String类型
+    
+        ```rust
+        let s1 = String::from("hello");
+        let s2 = s1;
+        ```
+    
+      * String类型的结构
+    
+        <img src = "img/String结构.svg" height = 300>
+    
+        * ``ptr/len/capacity``的大小确定，存放在stack
+        * 字符串的内容存放在heap
+    
+      * s1的String的数据被复制了一份给s2，如下图
+    
+        <img src="img/s2=s1.svg" height = "300">
+        
+        * 在stack上复制了一份指针、长度、容量
+        * **并没复制指针所指向的heap上的数据，最小化heap上的重复数据量**
+        
+      * 当s1,s2离开作用域时，Rust自动调用drop函数，并将变量使用的heap内存释放
+    
+      * **当s1,s2离开时，他们都尝试释放相同的一块内存：``double free bug``**
+    
+    * 为了保证内存安全，Rust没有尝试复制被分配的内存，而是选择**让``s1``失效**，**则当s1离开作用域时，并不需要释放任何内存，由s2进行内存释放**
+    
+      ```rust
+      fn main() {
+          let mut s = String::from("hello"); // s comes into scope
+      
+          s.push_str(", world!"); // push_str() appends a literal to a String
+      
+          println!("{}", s); // This will print `hello, world!`
+      
+          let s2 = s; // s2 is a copy of the pointer, length, and capacity of s
+          // println!("{}", s); // This will throw an error because s has been moved to s2
+      }
+      ```
+    
+    * **浅拷贝/深拷贝**：Rust不会自动创建数据的深拷贝(影响运行时性能，类似于浅拷贝的概念)
+    
+    * **我们将Rust中这种使s1失效的复制行为称为移动Move**
+    
+      <img src = "img/Move.svg" height = 300>
+    
+
+* **克隆(Clone)**
+
+  * 如果真想对heap上的数据进行深拷贝，可以使用``clone``方法
+
+    ```rust
+    fn main() {
+        let mut s = String::from("hello"); // s comes into scope
+    
+        s.push_str(", world!"); // push_str() appends a literal to a String
+        
+        let s2 = s.clone(); // s2 is a copy of the pointer, length, and capacity of s
+        println!("s: {}, s2: {}", s, s2); // This will print `hello, world!` twice
+    }
+    ```
+
+  * 将heap上的String数据克隆后如下图：太消耗资源了！
+
+    <img src = "img/clone.svg" height = 400>
+
+* **复制(Copy)**
+
+  * 对于stack上的数据，不需要clone，只需要copy
+
+    ```rust
+    fn main() {
+        let x = 5;
+        let y = x;
+        println!("x: {}, y: {}", x, y);
+    }
+    ```
+
+  * Rust提供了Copy trait，可以用于整数这样完全存放于stack上面的类型
+
+  * 如果一个类型实现了Copy这个trait，那么旧的变量在赋值后仍然可用
+
+    * 任何简单标量的组合类型都可以Copy：整数/布尔/浮点/字符/Tuple(其中字段都为Copy)
+    * 需要分配内存的都不是Copy的
+
+  * 如果一个类型或者该类型的一部分实现了Drop trait(针对于Heap),那么Rust不允许让他再去实现Copy trait(针对于Stack)
+
+#### 4.6.3 所有权与函数
+
+* 在语义上，把值传递给函数和把值传递给变量是类似的
+
+* **给一个函数进行传参时会发生Move/Copy,这由传参的数据类型决定,和赋值的过程是相同的**
+
+* 一个例子
+
+  ```rust
+  fn main() {
+      let s = String::from("hello"); // s comes into scope
+      takes_ownership(s); // s's value moves into the function and so is no longer valid here
+      // println!("{}", s); // This will throw an error because s has been moved to the function
+  
+      let x = 5; // x comes into scope
+      makes_copy(x); // x would move into the function, but i32 is Copy, so it’s okay to still use x afterward
+      println!("{}", x); // This will print `5`
+  
+  }
+  
+  fn takes_ownership(some_string: String) { // some_string comes into scope
+      println!("{}", some_string);
+  } // Here, some_string goes out of scope and `drop` is called. The backing memory is freed.
+  
+  fn makes_copy(some_integer: i32) { // some_integer comes into scope
+      println!("{}", some_integer);
+  } // Here, some_integer goes out of scope. Nothing special happens.
+  ```
+
+* **返回值与作用域**
+
+  * 函数在返回值的过程中同样也会发生``ownership``的转移：返回值的所有权转向接收者
+
+  * 一个例子
+
+    ```rust
+    fn main() {
+        let s1 = gives_ownership(); // gives_ownership moves its return value into s1
+        let s2 = String::from("hello"); // s2 comes into scope
+    
+        let s3 = takes_and_gives_back(s2); // s2 is moved into takes_and_gives_back, which also moves its return value into s3
+        println!("s1: {}, s3: {}", s1, s3);
+    }
+    
+    fn gives_ownership() -> String {
+        let some_string = String::from("hello");
+        some_string
+    }
+    
+    fn takes_and_gives_back(a_string: String) -> String {
+        a_string
+    }
+    ```
+
+* **一个变量的所有权总是遵循同样的模式**
+
+  * **把一个值赋给其他变量时就会发生Move/Copy**
+  * **当一个包含heap数据的变量离开作用域时，他的值就会被drop函数清理，除非数据所有权移动到了另一个变量上**
+
+* 如何让一个变量使用另一个变量的值但不拿走所有权？
+
+  * **可以通过返回原变量的方式拿回所有权**
+
+    ```rust
+    fn main() {
+        let s1 = String::from("hello");
+    
+        let (s2, len) = calculate_length(s1);
+    
+        println!("The length of '{}' is {}.", s2, len);
+    }
+    
+    fn calculate_length(s: String) -> (String, usize) {
+        let length = s.len(); // len() returns the length of a String
+    
+        (s, length)
+    }
+    ```
+
+  * 但是该方式有些丑陋，**Rust提供了一个使用值而不拿走所有权的方式：引用(``refferences``)，我们在下一节中详细讲述**
+
+
+
 ## TIPS: useful plugins for RUST
 
 * rust analyzer：Run/Debug(当然可以通过命令行)
