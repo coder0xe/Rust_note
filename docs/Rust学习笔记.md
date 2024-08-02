@@ -724,6 +724,94 @@ for element in arr.iter() {
 
   * 但是该方式有些丑陋，**Rust提供了一个使用值而不拿走所有权的方式：引用(``refferences``)，我们在下一节中详细讲述**
 
+### 4.7 引用和借用
+
+#### 4.7.1 References
+
+* ``&``符号就表示引用，**允许使用某些值而不取得其所有权**
+
+* Rust中的引用和C++中的引用类似，本质上是一个指向原变量的指针
+
+  <img src="img/Reference.svg" height = 200>
+
+* 示例代码：传入一个String类型的引用
+
+  ```rust
+  fn main() {
+      let s1 = String::from("hello");
+      let len = calculate_length(&s1); // reference
+      println!("The length of '{}' is {}.", s1, len);
+  }
+  
+  fn calculate_length(s: &String) -> usize { // borrow
+      s.len()
+  }
+  ```
+
+#### 4.7.2 Borrow
+
+* 把引用作为函数参数这个行为叫做借用
+* **即传参的时候给引用，函数参数为引用的行为称为借用**
+
+#### 4.7.3 Muttable Reference
+
+* **在借用函数中不可以对普通的引用进行修改，因为普通的引用默认为immutable**
+
+* **可以通过加mut关键字实现可变引用:``&mut``**
+
+  ```rust
+  fn main() {
+      let mut s1 = String::from("hello");
+      let len = calculate_length(&mut s1);
+      println!("The length of '{}' is {}.", s1, len);
+  }
+  
+  fn calculate_length(s: &mut String) -> usize {
+      s.push_str(", world");
+      s.len()
+  }
+  ```
+
+* **可变引用有一个重要的限制：在特定作用域内，对某一块数据，只能有一个可变的引用**
+
+  ```rust
+  fn main() {
+      let mut s = String::from("hello");
+      let s1 = &mut s;
+      let s2 = &mut s; // error[E0499]: cannot borrow `s` as mutable more than once at a time
+      println!("{}, {}", s1, s2);
+  }
+  ```
+
+  * **这样做的好处是可以在编译时就避免数据竞争**
+
+* **数据竞争**
+
+  * 两个或多个指针同时访问同一个数据
+  * 至少有一个指针用于写入数据
+  * 没有使用任何机制同步数据访问
+
+* 可以通过**创建新的作用域**，来允许**非同时的创建多个可变引用**
+
+  ```rust
+  fn main() {
+      let mut s = String::from("hello");
+      let s1 = &mut s;
+      {
+          let s2 = &mut s; 
+      }
+  }
+  ```
+
+* **不可以同时拥有一个可变引用和一个不可变引用，多个不变的引用是可以的**
+
+#### 4.7.4 Dangling References
+
+* 悬空指针(``Dangling Pointer``)：一个指针引用了内存中的某个地址，而这块地址可能已经释放并分配给其他人使用了
+* 在Rust中，编译器可以保证引用永远都不是悬空引用，如果你引用了某些数据，编译器将保证在引用离开作用域之前数据不会离开作用域
+
+### 4.8 切片
+
 
 
 ## TIPS: useful plugins for RUST
