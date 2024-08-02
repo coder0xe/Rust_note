@@ -812,7 +812,119 @@ for element in arr.iter() {
 
 ### 4.8 切片
 
+> 引用是指向整体的指针，切片是指向部分的指针(是一个不可变引用)
 
+* Rust的另外一种不持有所有权的数据类型：切片(``slice``)
+
+#### 4.8.1 字符串切片
+
+* 字符串切片是指向字符串中一部分内容的引用
+
+  * 形式：``&str[开始索引..结束索引]``
+
+    <img src="img/slice.svg" height = 300>
+
+  * 字符串切片的范围索引必须发生在有效的UTF-8字符边界内
+
+  * 如果尝试从一个多字节的字符中创建字符串切片，程序会报错并退出
+
+* 使用切片(部分指针)保证程序的正确性
+
+  ```rust
+  fn main() {
+      let mut s = String::from("hello world");
+      let word = first_word(&s);
+      s.clear();
+      println!("{}", word);
+  }
+  
+  fn first_word(s: &String) -> usize {
+      let bytes = s.as_bytes();
+      for (i, &item) in bytes.iter().enumerate() {
+          if item == b' ' {
+              return i;
+          }
+      }
+      s.len()
+  }
+  ```
+
+  * 在该程序中，word的值被固定为5,即使s被清空后也不会改变，这会造成错误
+  * 可以使用slice：返回字符串切片来改正
+
+  ```rust
+  fn main() {
+      let s = String::from("hello world");
+      let hello = first_word(&s);
+      s.clear(); // Error
+      println!("{}", hello);
+  }
+  
+  fn first_word(s: &String) -> &str { // return a string slice
+      let bytes = s.as_bytes();
+      for (i, &item) in bytes.iter().enumerate() {
+          if item == b' ' {
+              return &s[..i];
+          }
+      }
+      &s[..]
+  }
+  ```
+
+  * 在返回引用的版本中，hello接收了一个静态引用(切片)，而在该作用域内，``clear()``方法需要一个可变引用，这就会导致编译错误，Rust在编译阶段就减少了错误的发生
+
+* **字符串字面值是切片：不可变引用，指向二进制程序中的一个固定位置**
+
+  ```rust
+  let s:&str = "hello world";
+  ```
+
+* **将字符串切片作为参数传递**
+
+  ```rust
+  fn first_word(s:&String) -> &str { // 字符串引用作为参数
+  fn first_word(s:&str) -> &str { // 字符串切片作为参数
+  ```
+
+  * 当我们使用字符串切片作为形式参数，不仅可以直接接收字符串切片形式实参，**如果需要传递String类型，则可以传递一个String的切片或者String的引用（实际上这两者的类型都是&str字符串切片类型，就相当于把String类型转换为了&str类型的形式）**，让API接口更加通用
+
+  ```rust
+  fn main() {
+      // hello hello1 hello2 : 多个字符串切片类型 &str ，或者说是str类型的不可变引用
+      let s = String::from("hello world");
+      let hello = first_word(&s); // 传递String类型的引用 String -> &str
+      let hello1 = first_word(&s[..]); // 传递String类型的切片 String -> &str
+      println!("{} {}", hello, hello1);
+      let s1 = "hello world";
+      let hello2 = first_word(s1); // 字符串类型本身就是&str类型，可以直接传递
+      println!("{}", hello2);
+  
+  }
+  
+  fn first_word(s: &str) -> &str { // &String -> &str : general API
+      let bytes = s.as_bytes();
+      for (i, &item) in bytes.iter().enumerate() {
+          if item == b' ' {
+              return &s[..i];
+          }
+      }
+      &s[..]
+  }
+  ```
+
+#### 4.8.2 其他类型切片
+
+* 以数组为例
+
+  ```rust
+  fn main() {
+      let a = [1, 2, 3, 4, 5];
+      let slice = &a[1..3];
+      for i in slice {
+          println!("{}", i);
+      }
+  }
+  ```
 
 ## TIPS: useful plugins for RUST
 
