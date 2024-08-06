@@ -1038,6 +1038,80 @@ let user2 = User {
 
 * 可以写多个impl块
 
+### 4.10 枚举与模式匹配
+
+#### 4.10.1 enum枚举
+
+* 枚举允许我们列举所有可能的值来定义一个类型
+
+* **定义枚举**：其中每一种枚举类型称为一个**枚举变体**
+
+  ```rust
+  enum IpAddrKind {
+      V4,
+      V6,
+  }
+  let four = IpAddrKind::V4;
+  let six = IpAddrKind::V6;
+  ```
+
+* **将数据附加到枚举的变体中**
+
+  ```rust
+  // 标准库中的IpAddr类型
+  struct Ipv4Addr {
+      // code
+  }
+  
+  struct Ipv6Addr {
+      //code
+  }
+  
+  enum IpAddr {
+      V4(Ipv4Addr),
+      V6(Ipv6Addr),
+  }
+  ```
+
+  * 允许每个变体拥有不同的数据类型以及关联的数据量，不需要额外使用``struct``(薄纱Java)
+
+* **为枚举定义方法：impl关键字**
+
+#### 4.10.2 option定义枚举
+
+* 定义与标准库中，在Prelude(预导入模块)中
+
+* Rust没有Null
+
+  * 其他语言中，Null表示“没有值”
+    * 一个变量可以处于两种状态，空值(``null``)、非空
+    * 问题：当我们尝试使用非Null值那样使用Null值会发生问题
+  * Null的意义：因某种原因错误或缺失的值
+
+* Rust中类似Null概念的枚举:``Option<T>``
+
+  * 标准库中的定义，包含在Prelude,可以直接使用
+
+    ```rust
+    enum Option<T> {
+        Some(T), // 有效值
+        None, // 无效值
+    }
+    ```
+
+  * 在声明None变量时，编译器无法推断是什么类型的None，需要手动指定
+
+  * 在Rust中，``Option<T>``和``T``代表不同的类型，**若想使用``Option<T>``中的T，必须将他转换为T**
+
+    * 在Rust中，对于一个T类型，编译器保证了他一定是一个有效值
+    * 对于``Option<T>``类型我们才需要去考虑他是不是有效值
+
+  * 对于``Option<T>``类型的内置方法，可以查看文档
+
+    * 例如将``Option<T>``转换为T：``unwrap``
+
+  * 
+
 ## TIPS: useful plugins for RUST
 
 * rust analyzer：Run/Debug(当然可以通过命令行)
