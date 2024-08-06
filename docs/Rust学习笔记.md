@@ -926,6 +926,79 @@ for element in arr.iter() {
   }
   ```
 
+### 4.9 struct
+
+* 使用``struct``关键字为整个结构体命名
+
+* 在花括号内为所有字段(``field``)定义名称和类型
+
+  * 每一个字段形式为``名称 : 类型``
+
+* 在实例化``struct``时需要指定字段赋值，类似于``Verilog``中的实例化
+
+  ```rust
+  struct User{
+      username: String,
+      email: String,
+      sign_in_count: u64,
+      active: bool,
+  }
+  
+  fn main() {
+      let user1 = User {
+          email: String::from("abc@126.com"),
+          username: String::from("abc"),
+          active: true,
+          sign_in_count: 1,
+      }
+  }
+  ```
+
+* 使用``.``来访问结构体中的字段
+
+* **如果将实例化``struct``时的变量声明为``mut``，那么实例中所有的字段都是可变的**
+
+* ``struct``作为函数返回值：表达式作为函数返回值
+
+* **字段初始化简写**：当字段名与字段值对应的变量名相同时，就可以使用字段初始化简写
+
+* **struct更新语法**：基于某个实例来创建一个新实例，使用``struct``更新语法，``..``表示与另一个实例化中字段相同
+
+```rust
+let user2 = User {
+    email: String::from("2237362@buaa.edu.cn"),
+    username: String::from("2237362"),
+    ..user1
+}
+```
+
+* ``Tuple struct``：定义类似tuple的struct，其实就是给一种特定类型的tuple起一个别名
+
+  ```rust
+  struct Color(i32, i32, i32);
+  struct Point(i32, i32, i32);
+  let black = Color(0,0,0);
+  let origin = Point(0,0,0);
+  ```
+
+  * black和origin是不同的类型，是不同的tuple struct的实例，即使他们的tuple struct中字段完全相同
+
+* ``Unit-like Struct``：可以定义没有任何字段的``struct``，叫做``Unit-like Struct``，适用于需要在某个类型上实现某个trait,但是在里面没有想要存储的数据
+
+* **struct数据的所有权**：struct实例拥有其所有的数据
+
+  * struct中也可以存放引用，但是需要使用生命周期
+  * 生命周期包成只要struct实例是有效的，那么里面的引用也是有效的
+  * 如果struct里面存储引用，但是不使用生命周期，就会报错
+
+* **打印struct**
+
+  * 直接打印struct变量编译报错struct没有实现``std::fmt::Display / std::fmt::Debug``
+  * 在结构体前加``#[derive(Debug)]``注解表示实现Debug方法
+  * 输出格式：``{:?} : 简单 / {:#?} : 复杂``
+
+
+
 ## TIPS: useful plugins for RUST
 
 * rust analyzer：Run/Debug(当然可以通过命令行)
