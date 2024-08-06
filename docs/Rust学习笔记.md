@@ -997,7 +997,46 @@ let user2 = User {
   * 在结构体前加``#[derive(Debug)]``注解表示实现Debug方法
   * 输出格式：``{:?} : 简单 / {:#?} : 复杂``
 
+* ==``struct``的方法(``OO``)==
 
+  * 方法和函数类似：``fn``关键字、名称、参数、返回值
+  * 不同之处
+    * 方法是在``struct``(或``enum/trait``对象)的上下文中定义
+    * 第一个参数是``self``，表示调用这个方法的struct实例
+
+* ==定义方法(``OO``)==
+
+  * 需要在struct的impl块中定义方法
+
+  * 方法的第一个参数可以是``&self``，也可以获得其所有权或可变借用，和其他参数一样
+
+  * Rust中没有``->``运算符(``->``用于表示函数返回类型)，只能使用``.``
+
+    * Rust会自动引用或解引用：在调用方法时，Rust根据情况自动添加``& / &mut / *``以便object可以匹配方法的签名
+
+      ```rust
+      p1.distance(&p2); // 发生了自动引用行为，可以进行自动引用因为参数是固定的，即&self
+      (&p1).distance(&p2);
+      ```
+
+  * 更多参数
+
+* **关联函数：可以在impl块里定义不把self作为第一个参数的函数，他们叫关联函数(不是方法)**
+
+  * 例如``String::from``
+
+  * 通常用于构造器
+
+    ```rust
+    fn square(size : u32) -> Rectangle {
+        Rectangle {
+            width : size,
+            length : size,
+        }
+    }
+    ```
+
+* 可以写多个impl块
 
 ## TIPS: useful plugins for RUST
 

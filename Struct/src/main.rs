@@ -34,20 +34,40 @@ struct Rectangle {
     length : u32,
 }
 
-fn main() {
-    let w = 30;
-    let l = 50;
-    let rec = Rectangle {
-        width : w,
-        length : l,
-    };
+impl Rectangle {
+    fn area(&self) -> u32 {
+        self.width * self.length
+    }
 
-    println!("{:#?}", rec);
+    fn can_hold(&self, other : &Rectangle) -> bool {
+        self.width > other.width && self.length > other.length
+    }
 
-    println!("{}", area(&rec));
-
+    fn square(size : u32) -> Rectangle {
+        Rectangle {
+            width : size,
+            length : size,
+        }
+    }
 }
 
-fn area(rect : &Rectangle) -> u32 {
-    rect.width * rect.length
+fn main() {
+    let rec = Rectangle {
+        width :40,
+        length : 50,
+    };
+
+    let rec1 = Rectangle {
+        width : 20,
+        length : 30,
+    };
+
+    let s = Rectangle::square(20);
+
+    println!("rec can hold rec1 : {}", rec.can_hold(&rec1));
+
+    println!("area is {}", rec.area());
+
+    println!("square : {:#?}", s);
+
 }
