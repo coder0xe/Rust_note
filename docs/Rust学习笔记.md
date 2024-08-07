@@ -1195,6 +1195,32 @@ let user2 = User {
     }
     ```
 
+#### 4.10.4 if let
+
+* 处理只关心一种匹配而忽略其他匹配的情况
+
+* 放弃了穷举的可能
+
+* 可以搭配``else``
+
+  ```rust
+  fn main() {
+      let one:Option<i32> = Some(1);
+      if let Some(1) = one {
+          println!("let if 1");
+      } else {
+          println!("let if useless number");
+      }
+  
+      match one {
+          Some(1) => println!("match 1"),
+          _ => println!("match useless number"),
+      }
+  }
+  ```
+
+
+
 
 
 ## TIPS: useful plugins for RUST
