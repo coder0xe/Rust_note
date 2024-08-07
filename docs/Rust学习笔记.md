@@ -1110,7 +1110,92 @@ let user2 = User {
 
     * 例如将``Option<T>``转换为T：``unwrap``
 
-  * 
+#### 4.10.3 match
+
+* 允许一个值与一系列模式进行匹配，并执行匹配的模式对应的代码
+
+* 模式可以是字面值、变量值、通配符
+
+  ```rust
+  match /*expression*/ {
+      value1 => {
+          /*code*/
+  	},
+      value2 => {
+          /*code*/
+  	},
+      ...
+  }
+  ```
+
+* **绑定值的模式匹配：匹配的分支可以绑定到被匹配对象的部分值**，当我们在enum变体中绑定数据时，可以通过这种方法拿出绑定的数据。例如美国50个州都有各自的美分硬币，我们给美分类型加一个州属性(``enum``)
+
+  ```rust
+  enum Coin {
+      Penny,
+      Nickel,
+      Dime,
+      Quarter(State),
+  }
+  
+  
+  #[derive(Debug)]
+  enum State {
+      Alaska,
+      Alabama,
+  }
+  
+  
+  fn value_in_cents(coin : Coin) -> u8 {
+      match coin {
+          Coin::Penny => {
+              println!("Penny!");
+              1
+          },
+          Coin::Nickel => 5,
+          Coin::Dime => 10,
+          Coin::Quarter(state) => {
+              println!("Quarter from {:#?}", state);
+              25
+          },
+      }
+  }
+  
+  fn main() {
+      value_in_cents(Coin::Quarter(State::Alaska));
+  }
+  ```
+
+  * 可以在``match``匹配的对应``arm``中对他携带的数据进行匹配，**即从enum变体中拿出对应的数据**
+
+* 匹配``Option<T>``：需要注意处理``None``
+
+  ```rust
+  fn plus_one(x: Option<i32>) -> Option<i32> {
+      match x {
+          None => None,
+          Some(i) => Some(i + 1),
+      }
+  
+  ```
+
+* **match匹配时必须穷举所有的可能**
+
+  * 可以使用``_``通配符代表其他没有列举出的模式(``_``代表我不关心)
+
+    ```rust
+    fn main() {
+        let one:Option<i32> = Some(1);
+        match one {
+            Some(1) => println!("1"),
+            Some(2) => println!("2"),
+            Some(3) => println!("3"),
+            _ => println!("useless number"),
+        }
+    }
+    ```
+
+
 
 ## TIPS: useful plugins for RUST
 
