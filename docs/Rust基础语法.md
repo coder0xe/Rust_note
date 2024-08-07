@@ -1219,10 +1219,6 @@ let user2 = User {
   }
   ```
 
-
-
-
-
 ## TIPS: useful plugins for RUST
 
 * rust analyzer：Run/Debug(当然可以通过命令行)
