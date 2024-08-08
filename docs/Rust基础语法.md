@@ -732,6 +732,8 @@ for element in arr.iter() {
 
 * Rust中的引用和C++中的引用类似，本质上是一个指向原变量的指针
 
+  * **解引用：``*``**
+
   <img src="img/Reference.svg" height = 200>
 
 * 示例代码：传入一个String类型的引用

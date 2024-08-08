@@ -114,7 +114,71 @@
   * 对于字节：``bytes()``方法
   * 对于字型簇(最接近于字符)：标准库未提供，去找[crates](https://crates.io/)
 
+## 3. HashMap
 
+* ```HashMap<K,V>```
+
+* 内部实现：``Hash``函数，决定在内存中如何存放K和V
+
+* 创建空HashMap：``new``函数
+
+* 插入键值对：``insert()``方法
+
+* ``HashMap``不在预导入(``Prelude``)模块中，需要手动导入
+
+  ```rust
+  use std::collections::HashMap;
+  ```
+
+* 数据存储在heap上
+
+* **同构的**：所有的K为一个类型，所有的V为一个类型
+
+* **另一种创建``HashMap``的方式：collect方法(实际上可以把数据整合成很多种集合类型，包括HashMap)**
+
+  * 在元素类型为Tuple的Vector上使用collect方法，可以组建一个``HashMap``(要求Tuple有两个值K/V)
+
+    ```rust
+    let h: HashMap<_, _> = scores.collect();
+    ```
+
+* HashMap和所有权
+
+  * 对于实现了Copy trait的类型，值会被复制到``HashMap``中
+  * 对于拥有所有权的值(例如String)，值会被移动，所有权转移到``HashMap``(如果将值的引用插入HashMap，值本身不会移动)
+  * 在HashMap有效期间，被引用的值必须保持有效
+
+* **访问HashMap中的值**
+
+  * ``get()``方法：参数K，返回Option<&V>
+
+* **遍历HashMap**
+
+  * for循环
+
+    ```rust
+    for (k,v) in &scores {}
+    ```
+
+    **注：这里需要使用HashMap的引用，否则会发生所有权的移动(``into_iter()``方法)**
+
+* **更新HashMap**
+
+  * 大小可变
+  * 每个K只能对应一个V
+    * 插入相同的K，会覆盖掉原来的V
+  * ``entry()``方法：检查指定的K是否对应一个V
+    * 返回``enum Entry``：代表值是否存在
+    * ``Entry``的``or_insert()``方法：
+      * 如果K存在，返回到对应的V的一个可变引用
+      * 如果K不存在，将方法参数K作为K的新值插进去，返回到这个值的可变引用
+
+* **Hash函数**
+
+  * 默认情况下HashMap使用加密功能强大的Hash函数，可以抵抗拒绝服务的(``Dos``)攻击
+    * 不是最快的Hash算法
+    * 但是具有更好的安全性
+  * 可以指定不同的hasher来切换到另一个函数
 
 
 
