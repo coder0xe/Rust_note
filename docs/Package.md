@@ -13,8 +13,11 @@
 
 * ``Crate``的类型
 
-  * ``binary``
-  * ``library``
+  * ``binary``：二进制crate，充分必要条件是有``src/main.rs``
+    * 二进制crate可以编译为一个或多个可执行文件，他必须有一个``main()``函数入口，即有``main.rs``文件
+  * ``library``：库crate，充分必要条件是有``src/lib.rs``
+    * 库crate相当于函数库的作用，不可以被编译为可执行文件，没有``main()``函数入口
+  * 例如一个项目中有``src/main.rs``和``src/lib.rs``，这时就是同时有一个二进制crate和一个库crate
 
 * ``Crate Root``
 
