@@ -228,9 +228,36 @@
 >
 > * 每个项的引用数量不会变成0,值也不会被清理
 
+<img src="img/circle_ref.svg" alt="circle_ref" style="zoom:50%;" />
 
+```rust
+enum List {
+    Cons(i32, RefCell<Rc<List>>), // we want to modify the List value a Cons variant is pointing to. 
+    // Rc<list> => list类型可以有多个不可变引用(指针)
+    // RefCell<Rc<List>> => 可变的Rc指针=>可以修改Rc<list>指针的指向
+    // 回忆：构建链表=> Rc<list>
+    Nil,
+}
 
+enum List {
+    Cons(Rc<RefCell<i32>>, Rc<List>), // 多个可变引用
+    Nil,
+}
+```
 
+* 通过打印输出下一个元素导致爆栈可以发现成环
+* 防止内存泄漏：靠开发者保证，不能依靠Rust
+* **防止循环引用：``Rc<T>``换成``Weak<T>``**
+  * ``Rc::clone()``为``Rc<T>``的实例的``strong_count``加一，``Rc<T>``的实例在``strong_count``为0时才会被清理
+  * ``Rc<T>``实例通过调用``Rc::downgrade``方法可以创建值的``Weak Reference(弱引用)``
+    * 返回类型是``Weak<T>``(智能指针)
+    * ``weak_count``+1
+  * ``weak_count!=0``不会影响内存回收
+* **Strong VS Weak**
+  * Strong Reference是关于如何分享``Rc<T>``实例的所有权
+  * Weak Reference并不表达上述意思，当强引用数量为0,弱引用会自动断开
+  * 使用``Weak<T>``之前，**需要保证他指向的值依然存在**
+    * 在``Weak<T>``实例上调用``upgrade``方法，返回``Option<Rc<T>>``
 
 
 
