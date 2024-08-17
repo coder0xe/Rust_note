@@ -44,7 +44,7 @@
 
   * ``Box<T>``提供了间接存储和heap内存分配的功能，没有其他额外功能
 
-## 2. Deref Trait
+## 2. ``Deref Trait``
 
 * ``Deref : dereference``
 
@@ -165,7 +165,70 @@
 
 ### 5.1 内部可变性
 
+* **允许在只持有不可变引用的前提下对数据进行修改**
+  * 数据结构中使用了unsafe代码绕过Rust正常的可变性和借用规则
+* 可变的借用一个不可变的值
+* **However, there are situations in which it would be useful for a value to mutate itself in its methods but appear immutable to other code. Code outside the value’s methods would not be able to mutate the value. **
+* 或者说内部可变性就是允许一个类型的方法来修改值，即使外部看起来是不可变的
+
 ### 5.2 ``RefCell<T>``
+
+* 与``Rc<T>``不同，``RefCell<T>``类型代表了其持有数据的唯一所有权
+
+  * 借用规则：只能拥有一个可变引用或任意数量的不可变引用、引用总是有效的
+
+* **``RefCell<T>``和``Box<T>``的区别**
+
+  | ``Box<T>``                                 | ``RefCell<T>``                                           |
+  | ------------------------------------------ | -------------------------------------------------------- |
+  | 编译阶段强制代码遵守借用规则，否则出现错误 | **运行时检查**借用规则，否则触发panic                    |
+  | 尽早暴露问题，没有运行时开销               | 可能将问题暴露环境到生产环境                             |
+  |                                            | 借用计数产生些许性能损失                                 |
+  |                                            | **实现某些特定的内存安全场景(不可变环境中修改自身数据)** |
+
+* ``RefCell<T>``**只能用于单线程场景**
+
+  | ``Box<T>``                   | ``Rc<T>``              | ``RefCell<T>``                   |
+  | ---------------------------- | ---------------------- | -------------------------------- |
+  | 一个持有者                   | 多个持有者             | 一个持有者                       |
+  | 可变、不可变借用(编译时检查) | 不可变借用(编译时检查) | 可变、不可变借用(**运行时检查**) |
+
+  * **The advantage of checking the borrowing rules at runtime instead is that certain memory-safe scenarios are then allowed, where they would’ve been disallowed by the compile-time checks.**
+  * **Because some analysis is impossible, if the Rust compiler can’t be sure the code complies with the ownership rules, it might reject a correct program**
+  * **The `RefCell<T>` type is useful when you’re sure your code follows the borrowing rules but the compiler is unable to understand and guarantee that.**
+
+* 使用``RefCell<T>``类型存储数据来实现内部可变性
+
+* 使用``RefCell<T>``在运行时记录借用信息
+
+  * ``borrow``方法：返回智能指针``Ref<T>``(``RefCell<T>``值的不可变引用)，他实现了Deref
+  * ``borrow_mut``方法：返回智能指针``RefMut<T>``(``RefCell<T>``的可变引用)，他实现了Deref
+
+* ``RefCell<T>``会记录当前存在多少个活跃的``Ref<T>``和``RefMut<T>``智能指针
+
+  * 调用``borrow()``：不可变计数+1 | ``Ref<T>``离开作用域被释放：-1
+  * 调用``borrow_mut()``：可变计数+1 | ``RefMut<T>``离开作用域被释放：-1
+
+* 以此维护借用检查规则：
+
+  * 在给定时间中，只允许有多个不可变借用或一个可变借用
+
+* 将``Rc<T>``和``RefCell<T>``结合使用实现一个拥有多重多有权的可变数据
+
+  * **多个可变引用**
+
+### 5.3 其他可实现内部可变性的类型
+
+* ``Cell<T>``：通过复制来访问数据
+* ``Mutex<T>``：跨线程情形下的内部可变性模式
+
+## 6. 循环引用导致内存泄漏
+
+> Rust的内存安全机制保证很难发生内存泄漏，但是使用``Rc<T>``和``RefCell<T>``可能创造出循环引用，从而发生内存泄漏
+>
+> * 每个项的引用数量不会变成0,值也不会被清理
+
+
 
 
 
