@@ -181,7 +181,86 @@
 * 这种技术常用于运算符重载(``operator overloading``)
 * Rust不允许创建自己的运算符以及重载任意的运算符，**但可以通过实现std::ops中列出的那些trait来重载一部分相应的运算符**
 
-* 
+* 例如``Add Trait``的定义中
+
+  ```rust
+  pub trait Add<Rhs = Self> {
+      /// The resulting type after applying the `+` operator.
+      #[stable(feature = "rust1", since = "1.0.0")]
+      type Output;
+  
+      /// Performs the `+` operation.
+      ///
+      /// # Example
+      ///
+      /// ```
+      /// assert_eq!(12 + 1, 13);
+      /// ```
+      #[must_use = "this returns the result of the operation, without modifying the original"]
+      #[rustc_diagnostic_item = "add"]
+      #[stable(feature = "rust1", since = "1.0.0")]
+      fn add(self, rhs: Rhs) -> Self::Output;
+  }
+  ```
+
+  * ``Rhs = self``即为默认泛型参数，当我们实现``Add``重载时，默认类型就是自己的类型
+
+    ```rust
+    impl Add for Point {
+        type Output = Point;
+    
+        fn add(self, other: Point) -> Self::Output {
+            Point {
+                x: self.x + other.x,
+                y: self.y + other.y,
+            }
+        }
+    }
+    ```
+
+  * **如果要实现不同类型的运算符重载，就要指明具体参数，而不能使用默认参数，在Add<>中指明运算的另一种类型**
+
+    ```rust
+    impl Add<Meters> for Millimeters {
+        //code
+    }
+    ```
+
+### 2.3 完全限定语法(Fully Qualified Syntax)如何调用同名方法
+
+* 完全限定语法：``<Type as Trait>::function(receiver_if_method, next_arg, ...)``
+
+### 2.4  使用supertrait来要求trait附带其他trait的功能
+
+* 需要在一个trait中使用其他trait的功能
+
+  * 需要被依赖的trait也被实现
+
+* ```rust
+  trait OutlinePrint: another_trait /*被依赖的trait*/ {
+      
+  }
+  ```
+
+### 2.5 使用newtype模式在外部类型上实现外部trait
+
+* **孤儿规则：在为一个类型实现一个trait时，要求类型或trait至少有一个是在当前crate中定义的，或者说不能为第三方的类型实现第三方的crate**
+
+  * 可以为外部类型实现自定义trait
+  * 可以为自定义类型实现外部trait
+  * 不可以为外部类型实现外部trait(会与前人的定义冲突)
+
+* 可以通过newtype来绕过这一规则
+
+  * 利用``tuple struct``创建一个新的类型（做一个包装）
+
+    ```rust
+    struct Wrapper(Vec<String>); // 做的包装实际上就是定义了新类型
+    
+    impl fmt::Display for Wrapper {
+        // code
+    }
+    ```
 
 
 
