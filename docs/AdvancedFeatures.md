@@ -92,11 +92,37 @@
   > Rust mangling：在编译时编译器会改变我们写的函数名，更改为包含更多编译信息的名字，每一种语言mangle的方式都有不同，为了使我们的函数可以被其他语言通过函数名识别出来，我们需要禁用Rust的mangle
   >
   > ```rust
+  > // lib.rs
   > #[no_mangle]
   > pub extern "C" fn call_from_c() {
   >     println!("Just called a Rust function from C!");
   > }
   > ```
+  >
+  > ```c
+  > extern void rust_function();
+  > 
+  > int main() {
+  >     rust_function();
+  >     return 0;
+  > }
+  > ```
+
+  * 从c侧调用Rust需要Rust是一个``library crate``，更具体地说，需要在toml加入
+
+    ```rust
+    [lib]
+    crate-type = ["cdylib"]
+    ```
+
+  * 使用``cargo build``编译好rust库后再编译c程序，并对编译好的Rust目标文件进行链接
+
+    ```shell
+    gcc main.c -o call_rust -lffi_demo -L./target/debug #编译
+    LD_LIBRARY_PATH=./target/debug ./call_rust #运行
+    ```
+
+
 
 
 
